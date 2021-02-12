@@ -6,27 +6,46 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
+knitr::opts_chunk$set(echo = FALSE)
+
 library(janitor)
+library(tidycensus)
+library(leaflet)
+library(tidyverse)
+library(ggmap)
+library(maps)
+library(mapproj)
 ```
 
-## R Markdown
+```{r load_data}
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# SOURCE: https://osf.io/xhrc4/
+  
+  
+aussie_toilets <- read_csv("jill_exercise/aussie_public_toilets.csv")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+australia <- map_data("world") %>% filter(region=="Australia")
 
-```{r cars}
-summary(cars)
+ggplot() +
+  geom_polygon(data = australia, aes(x=long, y = lat, group = group), fill="black") +
+  geom_point(data = aussie_toilets, aes(x = Longitude, y = Latitude, color = factor(PaymentRequired, levels = c(TRUE,FALSE))), size = 1) +
+  theme_void()+
+  coord_map() +
+  ylim(-45,-5) + 
+  labs(title = "Where is payment required to\nuse public restrooms in Australia?", color = "Payment required?", subtitle= "It appears that Australians like free bathrooms.") + 
+    scale_color_discrete(labels = c("Yes", "No"))
 ```
 
-## Including Plots
+```{r}
+map <- get_googlemap("Australia", zoom = 8, maptype = "terrain")
 
-You can also embed plots, for example:
+ggmap(map) + 
+  theme_void() + 
+  ggtitle("Grand Junction, CO") + 
+  theme(
+    panel.border = element_rect(colour = "grey", fill=NA, size=2)
+  )
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
